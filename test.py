@@ -30,20 +30,22 @@ def cointegration_test (x,y):
 
 def zscore_cal(data1, data2, start, end):
 
-    s1 = pd.Series(data1['Close'][start:end])
-    s2 = pd.Series(data2['Close'][start:end])
+    s1 = pd.Series(data1['close'][start:end])
+    s2 = pd.Series(data2['close'][start:end])
 
     mvavg_old = np.mean(np.log(s1/s2))
 
     std_old = np.std(np.log(s1/s2))
 
     current_spread = np.log(
-        data1['Close'][end]/data2['Close'][end])
+        data1['close'][end]/data2['close'][end])
 
     zscore = (current_spread - mvavg_old) / \
         std_old if std_old > 0 else 0
 
     return zscore
+
+final_pairs = []
 
 for index in range(len(pairs)):
     stock1, stock2 = pairs[index]
@@ -52,6 +54,13 @@ for index in range(len(pairs)):
     res = cointegration_test(df1,df2)
     if res[0] <= res[4]['10%'] and res[1] <= 0.1:
         adftest = "Yes"
+        final_pairs.append([stock1, stock2])
     else:
         adftest = "No"
-        
+
+
+
+for index in range(len(final_pairs)):
+    df1 = pd.read_csv("C:\\Users\\omkin\\OneDrive\\Documents\\Algo Trading\\"+final_pairs[index][0]+".csv", parse_dates=['date'], index_col='date')
+    df2 = pd.read_csv("C:\\Users\\omkin\\OneDrive\\Documents\\Algo Trading\\"+final_pairs[index][1]+".csv", parse_dates=['date'], index_col='date')
+    zscore = zscore_cal(df1, df2, df1.index[0], df1.index[-1])
